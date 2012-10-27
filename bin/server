@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+var http = require('http');
+var https = require('https');
+
+function fetch(url, callback) {
+  var https = require('https');
+
+  var req = https.get(url, function(res) {
+    var pageData = "";
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      pageData += chunk;
+    });
+
+    res.on('end', function(){
+      callback(pageData);
+    });
+  });
+}
+
+http.createServer(function (req, res) {
+  var requesturl = 'https://echonest-analysis.s3.amazonaws.com/' + req.url.replace('/analysis/', '');
+
+  fetch(requesturl, function(d) {
+    res.write(d);
+    res.end();
+  });
+
+
+
+}).listen(9100, '127.0.0.1');
