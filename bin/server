@@ -1,31 +1,31 @@
 #!/usr/bin/env node
-var http = require('http');
-var https = require('https');
+/*jshint node:true */
+var express     = require('express'),
+    app         = express(),
+    path        = require('path'),
+    serverRoot  = path.join(__dirname, '..'),
+    http        = require('http'),
+    https       = require('https');
 
-function fetch(url, callback) {
-  var https = require('https');
+function proxy(url, res) {
+  var protocol = http;
+  if (url.indexOf('https') === 0) {
+    protocol = https;
+  }
 
-  var req = https.get(url, function(res) {
-    var pageData = "";
-    res.setEncoding('utf8');
-    res.on('data', function (chunk) {
-      pageData += chunk;
+  protocol.get(url, function(proxyRes) {
+
+    res.on('error', function (e) {
+      console.log("error", e);
     });
 
-    res.on('end', function(){
-      callback(pageData);
-    });
+    proxyRes.pipe(res);
   });
 }
 
-http.createServer(function (req, res) {
-  var requesturl = 'https://echonest-analysis.s3.amazonaws.com/' + req.url.replace('/analysis/', '');
+app.get(/^\/proxy?/, function(req, res){
+  proxy(req.query.url, res);
+});
 
-  fetch(requesturl, function(d) {
-    res.write(d);
-    res.end();
-  });
-
-
-
-}).listen(9100, '127.0.0.1');
+app.use('/', express.static(serverRoot + '/public'));
+app.listen(9100);
