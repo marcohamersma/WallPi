@@ -105,16 +105,16 @@ var wallPie = (function() {
       // Wether we should use a "light" or "dark" background.
       colorScheme        : 'light',
       // Distance of the text from the circle
-      textDistance       : 30,
+      textDistance       : 35,
       // Speaks for itself, I'm using Neutra locally.
-      font               : 'Helvetica Neue'
+      font               : 'Helvetica Neue',
+      trackSeparatorSize : 1
     }, options);
 
     var segmentBorders    = _.map(analysis, function(a) {return a.length / options.slimFactor; }),
         segments          = slimAnalysis(_.flatten(analysis), options.slimFactor),
         degreesPerSegment = 360 / segments.length,
         whitespace        = options.scaleFactor * options.whitespace,
-        innerDiameter     = options.scaleFactor * options.innerDiameter,
         innerRadius       = options.scaleFactor * (options.innerDiameter / 2),
         maxWidth          = $canvas.width() < $canvas.height() ? $canvas.width() : $canvas.height(),
         center            = [$canvas.width()/2, $canvas.height()/2],
@@ -122,7 +122,13 @@ var wallPie = (function() {
         textDistance      = (options.textDistance * options.scaleFactor) + innerRadius + waveFormDiameter,
         toRadian          = function(deg) { return deg * (Math.PI/180); },
         scaledSize        = [$canvas.width() / options.scaleFactor, $canvas.height() / options.scaleFactor],
-        revOpacity        = function(color, opacity) { return color/255;},
+        revOpacity        = function(color, opacity) {
+          if (options.colorScheme === "dark") {
+            return (color/255) * opacity;
+          } else {
+            return (((255 - color) * (1-opacity)) + color)/255;
+          }
+        },
         textColor         = options.colorScheme === "dark" ? '#ffffff' : '#464c3e';
 
     if (options.colorScheme === "dark") {
@@ -142,34 +148,33 @@ var wallPie = (function() {
           pixelsPerNote = waveFormDiameter/(segmentRange.pitches.length - 1),
           i, opacity;
       y = innerRadius;
-      for (i = 0; i < values.length + 1; i++) {
+      for (i = 0; i < values.length; i++) {
         // This should be relative from the distance from the center, not i
         // that way it will work nicely when there is an inner diameter set
-        opacity = easeInQuad(i, options.minimumOpacity, values[i], values.length) * 1;
-        if (i === 0 ) { opacity = 0.001;}
-        opacity = opacity * values[i];
+        // opacity = easeInQuad(i, options.minimumOpacity, values[i], values.length);
+        // if (i === 0 ) { opacity = 0.001;}
         context.setFillColor(
-          revOpacity(options.color[0], opacity),
-          revOpacity(options.color[1], opacity),
-          revOpacity(options.color[2], opacity),
-          opacity
+          revOpacity(options.color[0], values[i]),
+          revOpacity(options.color[1], values[i]),
+          revOpacity(options.color[2], values[i]),
+          1
         );
         context.moveTo(x, y);
 
         context.fillRect(x, y, options.scaleFactor/2, pixelsPerNote);
         y = (i * pixelsPerNote) + innerRadius;
       }
-
       context.rotate(toRadian(degreesPerSegment));
     });
 
     // Draw Borders
     _.each(segmentBorders, function(border) {
+      var borderColor = options.colorScheme === "dark" ? '#000000' : $canvas.css('background-color');
       context.rotate(toRadian(border * degreesPerSegment));
 
-      context.setFillColor($canvas.css('background-color'));
+      context.setFillColor(borderColor);
       context.moveTo(0, 0);
-      context.fillRect(0, innerRadius, options.scaleFactor, waveFormDiameter );
+      context.fillRect(0, innerRadius - 1, options.trackSeparatorSize * options.scaleFactor, waveFormDiameter+1 );
     });
 
     // Draw Text

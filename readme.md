@@ -33,11 +33,14 @@ There are a number of configuration options you might want to set to experiment 
     // Distance of the text from the circle
     textDistance       : 30,
     // Speaks for itself, I'm using Neutra locally.
-    font               : 'Helvetica Neue'
+    font               : 'Helvetica Neue',
+    // How big the gap between tracks needs to be
+    trackSeparatorSize : 1
+
 
 ## Todos
+-  Add more examples in readme
 -  Automatically fetch cover art & track titles for an album
--  Don't use opacity to show intensity, but mix it with white/black instead.
 -  Prettier results with very light and very dark colours
 -  Render stuff as vectors instead
 -  Different layouts
