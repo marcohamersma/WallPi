@@ -16,27 +16,30 @@ After the image has loading, your browser might crash a lot, the only way to exp
 ## Configuration
 There are a number of configuration options you might want to set to experiment with to get the desired result, here's a lazy copy/paste from `main.js`:
 
-    // used to multiply/divide certain values:
-    // - scaling the canvas down after rendering (for preview purposes)
-    // - scaling up font and whitespace size as it appears in the preview
-    scaleFactor       : 8,
-    // Reduces the amount of data with this factor
-    slimFactor        : 2,
-    // Space in px between the edge of the canvas/paper & circle
-    whitespace        : 30,
-    // space in px on the inside, makes for interesting effects
-    innerDiameter     : 0,
-    // Minimum opacity of every line in the circle
-    minimumOpacity    : 0.3,
-    // Wether we should use a "light" or "dark" background.
-    colorScheme        : 'light',
-    // Distance of the text from the circle
-    textDistance       : 30,
-    // Speaks for itself, I'm using Neutra locally.
-    font               : 'Helvetica Neue',
-    // How big the gap between tracks needs to be
-    trackSeparatorSize : 1
+```javascript
+// used to multiply/divide certain values:
+// - scaling the canvas down after rendering (for preview purposes)
+// - scaling up font and whitespace size as it appears in the preview
+scaleFactor       : 8,
+// Reduces the amount of data with this factor
+slimFactor        : 2,
+// Space in px between the edge of the canvas/paper & circle
+whitespace        : 30,
+// space in px on the inside, makes for interesting effects
+innerDiameter     : 0,
+// Minimum opacity of every line in the circle
+minimumOpacity    : 0.3,
+// Wether we should use a "light" or "dark" background.
+colorScheme        : 'light',
+// Distance of the text from the circle
+textDistance       : 30,
+// Speaks for itself, I'm using Neutra locally.
+font               : 'Helvetica Neue',
+// How big the gap between tracks needs to be
+trackSeparatorSize : 1
+```
 
+These options can be passed to `wallPie.fetchAlbum()` as seen in [index.html](https://github.com/marcohamersma/WallPi/blob/master/public/index.html).
 
 ## Todos
 -  Add more examples in readme
