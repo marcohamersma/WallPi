@@ -14,9 +14,12 @@ There is a server component which is used to proxy remote assets (to prevent cro
 After the image has loading, your browser might crash a lot, the only way to export the image that I found to _not_ crash the browser is by copying the image and pasting it in Photoshop or a similar application.
 
 ## Configuration
-There are a number of configuration options you might want to set to experiment with to get the desired result, here's a lazy copy/paste from `main.js`:
+There are a number of configuration options you might want to set to experiment with to get the desired result:
 
 ```javascript
+// API keys for the two services that we're using for getting our data
+echonest_key      : '',
+lastfm_key        : '',
 // used to multiply/divide certain values:
 // - scaling the canvas down after rendering (for preview purposes)
 // - scaling up font and whitespace size as it appears in the preview

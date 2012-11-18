@@ -1,35 +1,34 @@
 /*global $, _ , getDominantColor*/
 var wallPie = (function() {
-  var API, getTrackSummary, getAnalysisForSongSearch, easeInQuad, slimAnalysis, processCoverArt, drawFromAnalysis, fetchAnalysisForTracks, fetchAlbum, reportError, testData,
+  var API, getTrackSummary, getAnalysisForSongSearch, easeInQuad, slimAnalysis, processCoverArt, drawFromAnalysis, fetchAnalysisForTracks, fetchAlbum, reportError, testData, echoNest, lastfm, fetchAlbumInfo, reportStatus,
       canvas      = document.getElementById('canvas'),
       $canvas     = $(canvas),
       context     = canvas.getContext('2d');
 
-  API = (function() {
-    var credentials = {
-      key   : "KMCPV4Y7WGLVVSRNQ",
-      cKey  : "9a72cdd35b60dd23fb5bf34091ac7af6"
-    };
+  API = function(base_url, key) {
+    this.key      = key;
+    this.base_url = base_url;
+  };
 
-    return {
-      fetch: function(endpoint, parameters, json_params) {
-        parameters = $.param(_.extend(parameters, {
-          api_key : credentials.key,
-          format  : 'json'
-        }));
+  API.prototype.fetch = function (endpoint, parameters, json_params) {
+    parameters = $.param(_.extend(parameters, {
+      api_key : this.key,
+      format  : 'json'
+    }));
 
-        json_params = _.extend(json_params || {} , {
-          url: "http://developer.echonest.com/api/v4/" + endpoint + '?' + parameters
-        });
+    json_params = _.extend(json_params || {} , {
+      url: this.base_url + endpoint + '?' + parameters
+    });
 
-        return $.ajax(json_params);
-      }
-    };
-  })();
-
+    return $.ajax(json_params);
+  };
 
   reportError = function(message, data) {
     window.console.warn(message, data);
+  };
+
+  reportStatus = function(message, data) {
+    window.console.info(message, data);
   };
 
   getTrackSummary = function(analysis_url, callback) {
@@ -45,7 +44,7 @@ var wallPie = (function() {
   };
 
   getAnalysisForSongSearch = function(songData, callback) {
-    API.fetch('song/search', songData).success(function(data) {
+    echoNest.fetch('song/search', songData).success(function(data) {
       if (data.response.songs[0]) {
         getTrackSummary(data.response.songs[0].audio_summary.analysis_url, callback);
       } else {
@@ -86,7 +85,7 @@ var wallPie = (function() {
   };
 
   drawFromAnalysis = function(analysis, artist, title, options) {
-    console.info("Starting to draw wih " + analysis.length + " track's analysis data");
+    reportStatus("Starting to draw wih " + analysis.length + " track's analysis data");
     options = _.extend({}, {
       // used to multiply/divide certain values:
       // - scaling the canvas down after rendering (for preview purposes)
@@ -242,20 +241,44 @@ var wallPie = (function() {
       });
     };
 
-    console.info('Starting to fetch each track\'s analysis url from the Echonest…');
+    reportStatus('Starting to fetch each track\'s analysis url from the Echonest…');
     for (i = 0; i < tracks.length; i++) {
       fetchAnalysis(i);
     }
   };
 
-  fetchAlbum = function(artist, albumTitle, trackTitles, coverart, options) {
-    // TODO: Automatically fetch track titles and cover art
-    processCoverArt(coverart, function(colors) {
-      fetchAnalysisForTracks(artist, trackTitles, function(data) {
-        options.color = colors;
-        drawFromAnalysis(data, artist, albumTitle, {color: colors});
+  fetchAlbumInfo = function(artist, albumTitle, callback) {
+    lastfm.fetch('', {
+      method: 'album.getinfo',
+      artist: artist, album: albumTitle
+    }).success(function(data) {
+        callback({
+          artist : data.album.artist,
+          tracks : _.pluck(data.album.tracks.track, 'name'),
+          title  : data.album.name,
+          art    : data.album.image[data.album.image.length-1]['#text']
+        });
+      }).fail(function(e) {
+        reportError("seems something went wrong when fetching the album info", e);
+      });
+  };
+
+  fetchAlbum = function(artist, albumTitle, options) {
+    echoNest = new API("http://developer.echonest.com/api/v4/", options.echonest_key);
+    lastfm   = new API("http://ws.audioscrobbler.com/2.0/", options.lastfm_key);
+
+    fetchAlbumInfo(artist, albumTitle, function(albumInfo) {
+      artist     = albumInfo.artist;
+      albumTitle = albumInfo.title;
+
+      processCoverArt(albumInfo.art, function(colors) {
+        fetchAnalysisForTracks(artist, albumInfo.tracks, function(data) {
+          options.color = colors;
+          drawFromAnalysis(data, artist, albumTitle, {color: colors});
+        });
       });
     });
+
   };
 
   // Demo function for quickly rendering test data (offline)

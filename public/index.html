@@ -30,7 +30,9 @@
       var options = {
         slimFactor : 1,
         font: 'Neutra Text',
-        trackSeparatorSize: 2
+        trackSeparatorSize: 2,
+        echonest_key: '',
+        lastfm_key: ''
       }
 
       // 1. Artist
@@ -38,7 +40,7 @@
       // 3. Tracks on the album,
       // 4. Album art
       // 5. Options
-      wallPie.fetchAlbum("Radiohead", "OK Computer", ["Airbag", "Paranoid Android", "Subterranean Homesick Alien", "Exit Music (For a Film)", "Let Down", "Karma Police", "Fitter Happier", "Electioneering", "Climbing Up the Walls", "No Surprises", "Lucky", "The Tourist"], "http://upload.wikimedia.org/wikipedia/en/a/a1/Radiohead.okcomputer.albumart.jpg", options);
+      wallPie.fetchAlbum("My Bloody Valentine", "Loveless", options);
 
       // // For offline testing ...
       // wallPie.test({
