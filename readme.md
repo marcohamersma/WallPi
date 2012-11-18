@@ -38,6 +38,8 @@ colorScheme        : 'light',
 textDistance       : 30,
 // Speaks for itself, I'm using Neutra locally.
 font               : 'Helvetica Neue',
+fontSizeTop        : 50,
+fontSizeBottom     : 25,
 // How big the gap between tracks needs to be
 trackSeparatorSize : 1
 ```

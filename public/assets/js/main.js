@@ -107,6 +107,8 @@ var wallPie = (function() {
       textDistance       : 35,
       // Speaks for itself, I'm using Neutra locally.
       font               : 'Helvetica Neue',
+      fontSizeTop        : 50,
+      fontSizeBottom     : 25,
       trackSeparatorSize : 1
     }, options);
 
@@ -188,11 +190,11 @@ var wallPie = (function() {
       context.font = 'normal 100 ' + 25*options.scaleFactor + "px " + options.font;
       context.fillText("Oops, no data", 0, 0);
     } else {
-      context.font = 'normal 600 ' + 50*options.scaleFactor + "px " + options.font;
+      context.font = 'normal 600 ' + options.fontSizeTop*options.scaleFactor + "px " + options.font;
       context.textBaseline = 'alphabetic';
       context.fillText(artist.toUpperCase(), 0, -textDistance);
 
-      context.font = 'normal 100 ' + 25*options.scaleFactor + "px " + options.font;
+      context.font = 'normal 100 ' + options.fontSizeBottom*options.scaleFactor + "px " + options.font;
       context.textBaseline = 'top';
       context.fillText(title.toUpperCase(), 0, textDistance);
     }
@@ -274,7 +276,7 @@ var wallPie = (function() {
       processCoverArt(albumInfo.art, function(colors) {
         fetchAnalysisForTracks(artist, albumInfo.tracks, function(data) {
           options.color = colors;
-          drawFromAnalysis(data, artist, albumTitle, {color: colors});
+          drawFromAnalysis(data, artist, albumTitle, options);
         });
       });
     });
