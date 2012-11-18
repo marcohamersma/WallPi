@@ -13,13 +13,13 @@ function proxy(url, res) {
     protocol = https;
   }
 
-  protocol.get(url, function(proxyRes) {
-
-    res.on('error', function (e) {
-      console.log("error", e);
-    });
-
+  var req = protocol.get(url, function(proxyRes) {
     proxyRes.pipe(res);
+  });
+
+ req.on('error', function (e) {
+    console.log("error", e);
+    res.send(500);
   });
 }
 
