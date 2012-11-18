@@ -150,10 +150,6 @@ var wallPie = (function() {
           i, opacity;
       y = innerRadius;
       for (i = 0; i < values.length; i++) {
-        // This should be relative from the distance from the center, not i
-        // that way it will work nicely when there is an inner diameter set
-        // opacity = easeInQuad(i, options.minimumOpacity, values[i], values.length);
-        // if (i === 0 ) { opacity = 0.001;}
         context.setFillColor(
           revOpacity(options.color[0], values[i]),
           revOpacity(options.color[1], values[i]),
@@ -254,12 +250,17 @@ var wallPie = (function() {
       method: 'album.getinfo',
       artist: artist, album: albumTitle
     }).success(function(data) {
-        callback({
-          artist : data.album.artist,
-          tracks : _.pluck(data.album.tracks.track, 'name'),
-          title  : data.album.name,
-          art    : data.album.image[data.album.image.length-1]['#text']
-        });
+        if (!data.album.tracks.track) {
+          reportError("Last.fm is not returning any tracks for this album :(", data.album);
+        } else {
+          var artwork = data.album.image[3] || data.album.image[data.album.image.length-1];
+          callback({
+            artist : data.album.artist,
+            tracks : _.pluck(data.album.tracks.track, 'name'),
+            title  : data.album.name,
+            art    : artwork['#text']
+          });
+        }
       }).fail(function(e) {
         reportError("seems something went wrong when fetching the album info", e);
       });

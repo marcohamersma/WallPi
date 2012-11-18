@@ -1,5 +1,5 @@
 # Wallπ
-![](https://dl.dropbox.com/u/4905073/web%20UI.png)
+![](https://dl.dropbox.com/u/4905073/Wall%CF%80/examples.png)
 
 ## About the Hack
 Wallπ uses frequency analysis to draw a visual, circular representation of an album. The amount of activity within a frequency is reflected in the density of the color. The colour used to draw the circle is extracted from the cover art. The output file (at the moment) is 3508x4961px, high enough for print.
@@ -47,8 +47,7 @@ trackSeparatorSize : 1
 These options can be passed to `wallPie.fetchAlbum()` as seen in [index.html](https://github.com/marcohamersma/WallPi/blob/master/public/index.html).
 
 ## Todos
--  Add more examples in readme
--  Automatically fetch cover art & track titles for an album
--  Prettier results with very light and very dark colours
+-  Solution for cover art that has a dominant color that doesn't contrast well with the background color
+-  Allow for manual title input again if Last.FM screws up
 -  Render stuff as vectors instead
 -  Different layouts
