@@ -25,7 +25,7 @@ lastfm_key        : '',
 // - scaling up font and whitespace size as it appears in the preview
 scaleFactor       : 8,
 // Reduces the amount of data with this factor
-slimFactor        : 2,
+slimFactor        : 1,
 // Space in px between the edge of the canvas/paper & circle
 whitespace        : 30,
 // space in px on the inside, makes for interesting effects
@@ -41,14 +41,17 @@ font               : 'Helvetica Neue',
 fontSizeTop        : 50,
 fontSizeBottom     : 25,
 // How big the gap between tracks needs to be
-trackSeparatorSize : 1
+trackSeparatorSize : 1,
+// an (optional) array of track titles for when using the Last.FM API returns bad results
+trackTitles        : false
 ```
 
 These options can be passed to `wallPie.fetchAlbum()` as seen in [index.html](https://github.com/marcohamersma/WallPi/blob/master/public/index.html).
 
 ## Todos
 -  Solution for cover art that has a dominant color that doesn't contrast well with the background color
--  Allow for manual title input again if Last.FM screws up
+-  Overlay the cover art in a fancy way?
 -  Add a GUI for entering album title
 -  Render stuff as vectors instead
 -  Different layouts
+-  Clean up code

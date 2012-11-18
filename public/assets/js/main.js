@@ -271,17 +271,17 @@ var wallPie = (function() {
     lastfm   = new API("http://ws.audioscrobbler.com/2.0/", options.lastfm_key);
 
     fetchAlbumInfo(artist, albumTitle, function(albumInfo) {
+      var tracks = options.trackTitles || albumInfo.tracks;
       artist     = albumInfo.artist;
       albumTitle = albumInfo.title;
 
       processCoverArt(albumInfo.art, function(colors) {
-        fetchAnalysisForTracks(artist, albumInfo.tracks, function(data) {
+        fetchAnalysisForTracks(artist, tracks, function(data) {
           options.color = colors;
           drawFromAnalysis(data, artist, albumTitle, options);
         });
       });
     });
-
   };
 
   // Demo function for quickly rendering test data (offline)
