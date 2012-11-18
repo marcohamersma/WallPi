@@ -30,8 +30,6 @@ slimFactor        : 1,
 whitespace        : 30,
 // space in px on the inside, makes for interesting effects
 innerDiameter     : 0,
-// Minimum opacity of every line in the circle
-minimumOpacity    : 0.3,
 // Wether we should use a "light" or "dark" background.
 colorScheme        : 'light',
 // Distance of the text from the circle
@@ -49,7 +47,6 @@ trackTitles        : false
 These options can be passed to `wallPie.fetchAlbum()` as seen in [index.html](https://github.com/marcohamersma/WallPi/blob/master/public/index.html).
 
 ## Todos
--  Solution for cover art that has a dominant color that doesn't contrast well with the background color
 -  Overlay the cover art in a fancy way?
 -  Add a GUI for entering album title
 -  Render stuff as vectors instead
