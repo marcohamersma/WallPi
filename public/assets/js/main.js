@@ -99,8 +99,6 @@ var wallPie = (function() {
       // space in px on the inside
       innerDiameter     : 0,
       color             : null,
-      // Minimum opacity of every line in the circle
-      minimumOpacity    : 0.3,
       // Wether we should use a "light" or "dark" background.
       colorScheme        : 'light',
       // Distance of the text from the circle
@@ -147,7 +145,7 @@ var wallPie = (function() {
           y = 0,
           values = segmentRange.pitches.reverse(),
           pixelsPerNote = waveFormDiameter/(segmentRange.pitches.length - 1),
-          i, opacity;
+          i;
       y = innerRadius;
       for (i = 0; i < values.length; i++) {
         context.setFillColor(
