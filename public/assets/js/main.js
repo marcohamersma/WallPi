@@ -1,4 +1,4 @@
-/*global $, _ , getDominantColor*/
+/*global $, _ , createPalette*/
 var wallPie = (function() {
   var API, getTrackSummary, getAnalysisForSongSearch, easeInQuad, slimAnalysis, processCoverArt, drawFromAnalysis, fetchAnalysisForTracks, fetchAlbum, reportError, testData, echoNest, lastfm, fetchAlbumInfo, reportStatus,
       canvas      = document.getElementById('canvas'),
@@ -66,20 +66,56 @@ var wallPie = (function() {
   };
 
   processCoverArt = function(image_url, callback) {
+    var el, findRightColor;
+
+    /**
+     * Returns the first colour that passes a contrast threshold test
+     * The score is a value between 0-1 (1 being max contrast), it is
+     * calculated by taking each colour channel's difference with the
+     * background  of each color with the background
+     * @param  {Array} colors      list of colours in [r,g,b] format
+     *                             for example one that comes from color-thief
+     * @param  {Number} threshhold A contrast threshold
+     * @return {Array}             Single color in [r,g,b] format
+     */
+    findRightColor = function(colors, threshhold) {
+      // TODO: background color, this should be dependent on
+      // options.colorScheme, but I need to do some scope shifting
+      // before that works as expected.
+      var bgModifier = 255*3,
+          darkbg     = options.colorScheme === "black";
+
+      threshhold = threshhold || 0.2;
+      return _.filter(colors, function(color) {
+        var maxContrast = 255*3,
+            score = (bgModifier - (color[0]+color[1]+color[2]))/(maxContrast);
+
+        if (darkbg) {
+          score = 0 - score;
+        }
+
+        if (score > threshhold) {
+          return color;
+        }
+      })[0] || colors[0];
+
+    };
     if (image_url.indexOf('/') !== 0) {
       image_url = '/proxy?url=' + image_url;
     }
 
-    var el = $('<img>').attr({
+    el = $('<img>').attr({
       src       : image_url
     });
+
     el.appendTo('body');
     el.load(function() {
       el.attr({
         width : el.width(),
         height: el.height()
       });
-      callback(getDominantColor(el));
+
+      callback(findRightColor(createPalette(el, 7)));
       el.remove();
     });
   };
