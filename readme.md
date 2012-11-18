@@ -11,7 +11,7 @@ I'm _not_ using FFT data unfortunately: Some research and a lot of frustration a
 ## How to run
 There is a server component which is used to proxy remote assets (to prevent cross-domain issues) and serve the html and assets. This component is written in Node. You can use `npm install` to install the neccesary dependencies. After all the dependencies are installed, type `bin/server` to run. It's then available at `localhost:9100`. Open index.html for instructions on how to load an album.
 
-After the image has loading, your browser might crash a lot, the only way to export the image that I found to _not_ crash the browser is by copying the image and pasting it in Photoshop or a similar application.
+After the image has finished drawing/loading, your browser might crash a lot, the only way to export the image that I found to _not_ crash the browser is by copying the image and pasting it in Photoshop or a similar application.
 
 ## Configuration
 There are a number of configuration options you might want to set to experiment with to get the desired result:
@@ -49,5 +49,6 @@ These options can be passed to `wallPie.fetchAlbum()` as seen in [index.html](ht
 ## Todos
 -  Solution for cover art that has a dominant color that doesn't contrast well with the background color
 -  Allow for manual title input again if Last.FM screws up
+-  Add a GUI for entering album title
 -  Render stuff as vectors instead
 -  Different layouts
