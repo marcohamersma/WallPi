@@ -6,8 +6,6 @@ Wallπ uses frequency analysis to draw a visual, circular representation of an a
 
 I'm _not_ using FFT data unfortunately: Some research and a lot of frustration at a previous hackday taught me that there are no good API's for Processing or Javascript which would allow me to get frequency data in a non-realtime fashion, so this time I decided to use The Echonest's segment pitch analysis.
 
-**A hosted version might come soon**
-
 ## How to run
 There is a server component which is used to proxy remote assets (to prevent cross-domain issues) and serve the html and assets. This component is written in Node. You can use `npm install` to install the neccesary dependencies. After all the dependencies are installed, type `bin/server` to run. It's then available at `localhost:9100`. Open index.html for instructions on how to load an album.
 

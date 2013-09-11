@@ -31,28 +31,30 @@ var wallPie = (function() {
     window.console.info(message, data);
   };
 
-  getTrackSummary = function(analysis_url, callback) {
-    $.ajax({
-      url: '/proxy?url=' + encodeURIComponent(analysis_url),
-      dataType  : "json"
-    }).success(function(data) {
-      callback(data);
-    }).fail(function(error) {
-      reportError('Error fetching analyis data for a track', error);
-      callback(false);
-    });
-  };
-
-  getAnalysisForSongSearch = function(songData, callback) {
-    echoNest.fetch('song/search', songData).success(function(data) {
+  /**
+   * Requests the Echonest metadata about the track, finds the audio analysis url, and fetches that.
+   * @param  {Object}   options  Parameters used for the echoNest search, should contain
+   *                             artist, title, bucket (audio summary).
+   * @param  {Function} callback
+   * @return {Object}            contents of echonest's audio analysis containing:
+   *                             bars, beats, meta, sections, segments (what we need), tatums and track
+   */
+  getAnalysisForSongSearch = function(options, callback) {
+    echoNest.fetch('song/search', options).success(function(data) {
       if (data.response.songs[0]) {
-        getTrackSummary(data.response.songs[0].audio_summary.analysis_url, callback);
+        $.getJSON(data.response.songs[0].audio_summary.analysis_url)
+          .done(callback)
+          .fail(function(error) {
+            reportError('Error fetching analyis data for a track', error);
+            callback(false);
+          });
+
       } else {
-        reportError('Segment data can\'t be found for ' + songData.title + '"');
+        reportError('Segment data can\'t be found for ' + options.title + '"');
         callback(false);
       }
     }).fail(function(error) {
-      reportError('Looking up the song "' + songData.title + '" didn\'t go so well', error);
+      reportError('Looking up the song "' + options.title + '" didn\'t go so well', error);
       callback(false);
     });
   };
@@ -65,6 +67,16 @@ var wallPie = (function() {
     return _.filter(data, function() { return Math.random() < 1/slimFactor; });
   };
 
+  /**
+   * Downloads an image and analyses it for a dominant colour using canvas and colorThief
+   * TODO: make this work outside of Wallπ's closure
+   * TODO: Remove the proxy part out of this.
+   *
+   * @param  {String}   image_url url to the artwork. This must be a local file
+   *                              due to cross-domain security reasons
+   * @param  {Function} callback
+   * @return {Array}             [red, green blue]
+   */
   processCoverArt = function(image_url, callback) {
     var el, findRightColor;
 
@@ -120,7 +132,20 @@ var wallPie = (function() {
     });
   };
 
+  /**
+   * Hugely bloated function which draws the actual thing.
+   * Then gets the canvas data and makes it an image
+   *
+   * TODO: Find a way to split this function up in a nice way
+   *
+   * @param  {Array} analysis  Echonest segment data for every track
+   *                           SHOULD: array with tracks.segments.frequencies (normalised 0-1)
+   * @param  {String} artist   Artist name for drawing
+   * @param  {String} title    Album title for drawing
+   * @param  {Object} options  see readme, or the actual function, I dunno
+   */
   drawFromAnalysis = function(analysis, artist, title, options) {
+    debugger
     reportStatus("Starting to draw wih " + analysis.length + " track's analysis data");
     options = _.extend({}, {
       // used to multiply/divide certain values:
@@ -245,29 +270,37 @@ var wallPie = (function() {
     $canvas.remove();
   };
 
+  /**
+   * Calls getAnalysisForSongSearch for every track in `tracks` and collects the output in an array
+   *
+   * @param  {String}   artist   artist name
+   * @param  {Array}    tracks   array of track name strings
+   * @param  {Function} callback
+   * @return {Array}             array of echonest audio_summary data with one item per track
+   */
   fetchAnalysisForTracks = function (artist, tracks, callback) {
-    var analysis_urls = [],
+    var trackSegments = [],
         itemsAnalysed = 0,
         fetchAnalysis,
         i;
 
-    fetchAnalysis = function(trackNo) {
+    fetchAnalysis = function(trackName) {
        getAnalysisForSongSearch({
         artist: artist,
-        title : tracks[trackNo],
+        title : trackName,
         results: 1,
         bucket  : "audio_summary"
       }, function(data) {
         if (data) {
-          analysis_urls.push(data.segments);
+          trackSegments.push(data.segments);
         }
         itemsAnalysed ++;
 
         if (tracks.length === itemsAnalysed) {
-          callback(analysis_urls);
+          callback(trackSegments);
 
-          if (analysis_urls.length !== tracks.length) {
-            reportError(tracks.length + ' tracks expected, but could only fetch data for ' + analysis_urls.length);
+          if (trackSegments.length !== tracks.length) {
+            reportError(tracks.length + ' tracks expected, but could only fetch data for ' + trackSegments.length);
           }
         }
       });
@@ -275,10 +308,22 @@ var wallPie = (function() {
 
     reportStatus('Starting to fetch each track\'s analysis url from the Echonest…');
     for (i = 0; i < tracks.length; i++) {
-      fetchAnalysis(i);
+      fetchAnalysis(tracks[i]);
     }
   };
 
+  /**
+   * Fetches album metadata from Last.fm. Returns an object containing
+   * -  {String}  art     URL for artwork
+   * -  {String}  artist  Artist name (correctly formatted)
+   * -  {String}  title   Album title
+   * -  {Array}   tracks  A list of track titles associated for this album
+   *
+   * @param  {String}   artist
+   * @param  {String}   albumTitle
+   * @param  {Function} callback
+   * @return {Object}
+   */
   fetchAlbumInfo = function(artist, albumTitle, callback) {
     lastfm.fetch('', {
       method: 'album.getinfo',
@@ -289,10 +334,10 @@ var wallPie = (function() {
         } else {
           var artwork = data.album.image[3] || data.album.image[data.album.image.length-1];
           callback({
+            art    : artwork['#text'],
             artist : data.album.artist,
-            tracks : _.pluck(data.album.tracks.track, 'name'),
             title  : data.album.name,
-            art    : artwork['#text']
+            tracks : _.pluck(data.album.tracks.track, 'name')
           });
         }
       }).fail(function(e) {
