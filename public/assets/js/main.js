@@ -1,9 +1,10 @@
 /*global $, _ , createPalette*/
 var wallPie = (function() {
-  var API, getTrackSummary, getAnalysisForSongSearch, easeInQuad, slimAnalysis, processCoverArt, drawFromAnalysis, fetchAnalysisForTracks, fetchAlbum, reportError, testData, echoNest, lastfm, fetchAlbumInfo, reportStatus,
-      canvas      = document.getElementById('canvas'),
-      $canvas     = $(canvas),
-      context     = canvas.getContext('2d');
+  var API, getTrackSummary, getAnalysisForSongSearch, easeInQuad, slimAnalysis, processCoverArt, drawFromAnalysis, fetchAnalysisForTracks, fetchAlbum, reportError, testData, echoNest, lastfm, fetchAlbumInfo, reportStatus, drawSegment, helpers, drawSegment,
+
+    canvas      = document.getElementById('canvas'),
+    $canvas     = $(canvas),
+    context     = canvas.getContext('2d');
 
   API = function(base_url, key) {
     this.key      = key;
@@ -57,14 +58,6 @@ var wallPie = (function() {
       reportError('Looking up the song "' + options.title + '" didn\'t go so well', error);
       callback(false);
     });
-  };
-
-  easeInQuad =function (t, b, c, d) {
-    return c*(t/=d)*t + b;
-  };
-
-  slimAnalysis = function(data, slimFactor) {
-    return _.filter(data, function() { return Math.random() < 1/slimFactor; });
   };
 
   /**
@@ -132,11 +125,69 @@ var wallPie = (function() {
     });
   };
 
+  helpers = {
+    toRadian:  function(deg) {
+      return deg * (Math.PI/180);
+    },
+    easeInQuad: function (t, b, c, d) {
+      return c*(t/=d)*t + b;
+    },
+    slimAnalysis: function(data, slimFactor) {
+      return _.filter(data, function() { return Math.random() < 1/slimFactor; });
+    },
+   revOpacity : function(color, opacity, colorScheme) {
+      if (colorScheme === "dark") {
+        return (color/255) * opacity;
+      } else {
+        return (((255 - color) * (1-opacity)) + color)/255;
+      }
+    }
+  };
+
+  // TODO: sort arguments to make more sense
+  var drawDataPoint = function(context, value, color, colorScheme, x, y, scaleFactor, height) {
+    context.setFillColor(
+      // TODO: Do I really still need this? can't I use normal opacity?
+      helpers.revOpacity(color[0], value, colorScheme),
+      helpers.revOpacity(color[1], value, colorScheme),
+      helpers.revOpacity(color[2], value, colorScheme),
+      1
+    );
+
+    // TODO: Please, not scalefactor in here :(
+    context.fillRect(x, y, scaleFactor/2, height);
+  };
+
+  drawSegment = function(context, segmentRange, color, colorScheme, innerRadius, waveFormDiameter, scaleFactor) {
+    var y = innerRadius || 0,
+        // TODO: At this point I shouldn't have to filter data
+        frequencyPoint = segmentRange.pitches.reverse(),
+        pixelsPerNote = waveFormDiameter/(segmentRange.pitches.length - 1),
+        i;
+
+    // Draw every datapoint to the canvas, with the following color. Then move up to draw the next one
+    for (i = 0; i < frequencyPoint.length; i++) {
+      context.moveTo(0, y);
+      drawDataPoint(context, frequencyPoint[i], color, colorScheme, 0, y, scaleFactor, pixelsPerNote);
+      y = (i * pixelsPerNote) + innerRadius;
+    }
+  };
+
+  var decorateCanvas = function(context, artist, title, color, font, fontSizeTop, fontSizeBottom, offset) {
+    context.setFillColor(color);
+    context.textAlign = "center";
+
+    context.font = 'normal 600 ' + fontSizeTop + "px " + font;
+    context.textBaseline = 'alphabetic';
+    context.fillText(artist.toUpperCase(), 0, -offset);
+
+    context.font = 'normal 100 ' + fontSizeBottom + "px " + font;
+    context.textBaseline = 'top';
+    context.fillText(title.toUpperCase(), 0, offset);
+  };
+
   /**
-   * Hugely bloated function which draws the actual thing.
-   * Then gets the canvas data and makes it an image
-   *
-   * TODO: Find a way to split this function up in a nice way
+   * almost-not so bloated function which draws the actual thing.
    *
    * @param  {Array} analysis  Echonest segment data for every track
    *                           SHOULD: array with tracks.segments.frequencies (normalised 0-1)
@@ -145,9 +196,9 @@ var wallPie = (function() {
    * @param  {Object} options  see readme, or the actual function, I dunno
    */
   drawFromAnalysis = function(analysis, artist, title, options) {
-    debugger
+    // TODO: Cancel if analysis.length === 0, obvously
     reportStatus("Starting to draw wih " + analysis.length + " track's analysis data");
-    options = _.extend({}, {
+    options = _.extend({
       // used to multiply/divide certain values:
       // - scaling the canvas down after rendering (for preview purposes)
       // - scaling up font and whitespace size as it appears in the preview
@@ -171,88 +222,65 @@ var wallPie = (function() {
       trackSeparatorSize : 1
     }, options);
 
-    var segmentBorders    = _.map(analysis, function(a) {return a.length / options.slimFactor; }),
-        segments          = slimAnalysis(_.flatten(analysis), options.slimFactor),
-        degreesPerSegment = 360 / segments.length,
-        whitespace        = options.scaleFactor * options.whitespace,
-        innerRadius       = options.scaleFactor * (options.innerDiameter / 2),
-        maxWidth          = $canvas.width() < $canvas.height() ? $canvas.width() : $canvas.height(),
-        center            = [$canvas.width()/2, $canvas.height()/2],
-        waveFormDiameter  = (maxWidth/2) - innerRadius - whitespace,
-        textDistance      = (options.textDistance * options.scaleFactor) + innerRadius + waveFormDiameter,
-        toRadian          = function(deg) { return deg * (Math.PI/180); },
-        scaledSize        = [$canvas.width() / options.scaleFactor, $canvas.height() / options.scaleFactor],
-        revOpacity        = function(color, opacity) {
-          if (options.colorScheme === "dark") {
-            return (color/255) * opacity;
-          } else {
-            return (((255 - color) * (1-opacity)) + color)/255;
-          }
-        },
-        textColor         = options.colorScheme === "dark" ? '#ffffff' : '#464c3e';
+    var segmentBorders, segments, degreesPerSegment, whitespace, innerRadius, maxWidth, center, waveFormDiameter, textDistance, fontSizeTop, fontSizeBottom, scaledSize, textColor;
+
+    // TODO: slimming of the data should already have happened by now.
+
+    // Calculate the number of segments per track, used to calculate when to draw track separators
+    segmentBorders    = _.map(analysis, function(a) {return a.length / options.slimFactor; });
+    // Converts the segment data into one array of items, no longer distinguishing between tracks.
+    segments          = helpers.slimAnalysis(_.flatten(analysis), options.slimFactor);
+    degreesPerSegment = 360 / segments.length;
+
+    // Calculating units for the visualisation
+    whitespace        = options.scaleFactor * options.whitespace;
+    innerRadius       = options.scaleFactor * (options.innerDiameter / 2);
+    fontSizeTop       = options.scaleFactor * (options.fontSizeTop);
+    fontSizeBottom    = options.scaleFactor * (options.fontSizeBottom);
+
+    maxWidth          = $canvas.width() < $canvas.height() ? $canvas.width() : $canvas.height();
+    center            = [$canvas.width()/2, $canvas.height()/2];
+    waveFormDiameter  = (maxWidth/2) - innerRadius - whitespace;
+    textDistance      = (options.textDistance * options.scaleFactor) + innerRadius + waveFormDiameter;
+
+    // Not sure what do do with this.
+    scaledSize        = [$canvas.width() / options.scaleFactor, $canvas.height() / options.scaleFactor];
+    textColor         = options.colorScheme === "dark" ? '#ffffff' : '#464c3e';
 
     if (options.colorScheme === "dark") {
       context.setFillColor('#000000');
       context.fillRect(0,0, $canvas.width(), $canvas.height());
     }
 
+    // Start drawing
     context.save();
     context.translate(center[0], center[1]);
-    context.rotate(toRadian(180));
-    context.scale(1/options.scaleFactor);
+    context.rotate(helpers.toRadian(180));
+    // context.scale(1/options.scaleFactor, 1/options.scaleFactor);
 
     _.each(segments, function(segmentRange) {
-      var x = 0,
-          y = 0,
-          values = segmentRange.pitches.reverse(),
-          pixelsPerNote = waveFormDiameter/(segmentRange.pitches.length - 1),
-          i;
-      y = innerRadius;
-      for (i = 0; i < values.length; i++) {
-        context.setFillColor(
-          revOpacity(options.color[0], values[i]),
-          revOpacity(options.color[1], values[i]),
-          revOpacity(options.color[2], values[i]),
-          1
-        );
-        context.moveTo(x, y);
+      drawSegment(context, segmentRange, options.color, options.colorScheme, innerRadius, waveFormDiameter, options.scaleFactor);
 
-        context.fillRect(x, y, options.scaleFactor/2, pixelsPerNote);
-        y = (i * pixelsPerNote) + innerRadius;
-      }
-      context.rotate(toRadian(degreesPerSegment));
+      context.rotate(helpers.toRadian(degreesPerSegment));
+      // Ideally I'd draw separators here
     });
 
     // Draw Borders
+    // TODO: Can I instead of rotating a full 360, maybe only rotate 350, and use the rest for separators?
     _.each(segmentBorders, function(border) {
       var borderColor = options.colorScheme === "dark" ? '#000000' : $canvas.css('background-color');
-      context.rotate(toRadian(border * degreesPerSegment));
+      context.rotate(helpers.toRadian(border * degreesPerSegment));
 
       context.setFillColor(borderColor);
       context.moveTo(0, 0);
       context.fillRect(0, innerRadius - 1, options.trackSeparatorSize * options.scaleFactor, waveFormDiameter+1 );
     });
 
-    // Draw Text
     context.restore();
     context.translate(center[0], center[1]);
 
-    context.setFillColor(textColor);
-    context.textAlign = "center";
-
-    if (analysis.length === 0) {
-
-      context.font = 'normal 100 ' + 25*options.scaleFactor + "px " + options.font;
-      context.fillText("Oops, no data", 0, 0);
-    } else {
-      context.font = 'normal 600 ' + options.fontSizeTop*options.scaleFactor + "px " + options.font;
-      context.textBaseline = 'alphabetic';
-      context.fillText(artist.toUpperCase(), 0, -textDistance);
-
-      context.font = 'normal 100 ' + options.fontSizeBottom*options.scaleFactor + "px " + options.font;
-      context.textBaseline = 'top';
-      context.fillText(title.toUpperCase(), 0, textDistance);
-    }
+    // Draw Text
+    decorateCanvas(context, artist, title, textColor, options.font, fontSizeTop, fontSizeBottom, textDistance);
 
     $canvas.css({
       width : scaledSize[0],
@@ -345,6 +373,14 @@ var wallPie = (function() {
       });
   };
 
+  /**
+   * This function basically starts everything off and passes data into callback hell.
+   * The end result is that it's all drawn.
+   *
+   * @param  {String} artist
+   * @param  {String} albumTitle
+   * @param  {Object} options    see readme.md
+   */
   fetchAlbum = function(artist, albumTitle, options) {
     echoNest = new API("http://developer.echonest.com/api/v4/", options.echonest_key);
     lastfm   = new API("http://ws.audioscrobbler.com/2.0/", options.lastfm_key);
