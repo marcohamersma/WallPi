@@ -62,8 +62,7 @@ var wallPie = (function() {
 
   /**
    * Downloads an image and analyses it for a dominant colour using canvas and colorThief
-   * TODO: make this work outside of Wallπ's closure
-   * TODO: Remove the proxy part out of this.
+   * Assumes that colorThief's `createPallette` is a global
    *
    * @param  {String}   image_url url to the artwork. This must be a local file
    *                              due to cross-domain security reasons
@@ -105,9 +104,6 @@ var wallPie = (function() {
       })[0] || colors[0];
 
     };
-    if (image_url.indexOf('/') !== 0) {
-      image_url = '/proxy?url=' + image_url;
-    }
 
     el = $('<img>').attr({
       src       : image_url
@@ -389,6 +385,10 @@ var wallPie = (function() {
       var tracks = options.trackTitles || albumInfo.tracks;
       artist     = albumInfo.artist;
       albumTitle = albumInfo.title;
+
+      if (albumInfo.art.indexOf('/') !== 0) {
+        albumInfo.art = '/proxy?url=' + albumInfo.art;
+      }
 
       processCoverArt(albumInfo.art, function(colors) {
         fetchAnalysisForTracks(artist, tracks, function(data) {
