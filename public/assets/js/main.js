@@ -1,28 +1,31 @@
+var API, wallPie;
+
+API = function(base_url, key) {
+  this.key      = key;
+  this.base_url = base_url;
+};
+
+API.prototype.fetch = function (endpoint, parameters, json_params) {
+  parameters = $.param(_.extend(parameters, {
+    api_key : this.key,
+    format  : 'json'
+  }));
+
+  json_params = _.extend(json_params || {} , {
+    url: this.base_url + endpoint + '?' + parameters
+  });
+
+  return $.ajax(json_params);
+};
+
 /*global $, _ , createPalette*/
-var wallPie = (function() {
-  var API, getTrackSummary, getAnalysisForSongSearch, easeInQuad, slimAnalysis, processCoverArt, drawFromAnalysis, fetchAnalysisForTracks, fetchAlbum, reportError, testData, echoNest, lastfm, fetchAlbumInfo, reportStatus, drawSegment, helpers, drawSegment,
+wallPie = (function() {
+  var getTrackSummary, getAnalysisForSongSearch, easeInQuad, slimAnalysis, processCoverArt, drawFromAnalysis, fetchAnalysisForTracks, fetchAlbum, reportError, testData, echoNest, lastfm, fetchAlbumInfo, reportStatus, drawSegment, helpers, drawSegment,
 
     canvas      = document.getElementById('canvas'),
     $canvas     = $(canvas),
     context     = canvas.getContext('2d');
 
-  API = function(base_url, key) {
-    this.key      = key;
-    this.base_url = base_url;
-  };
-
-  API.prototype.fetch = function (endpoint, parameters, json_params) {
-    parameters = $.param(_.extend(parameters, {
-      api_key : this.key,
-      format  : 'json'
-    }));
-
-    json_params = _.extend(json_params || {} , {
-      url: this.base_url + endpoint + '?' + parameters
-    });
-
-    return $.ajax(json_params);
-  };
 
   reportError = function(message, data) {
     window.console.warn(message, data);
