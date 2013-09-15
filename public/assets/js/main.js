@@ -131,10 +131,16 @@ wallPie = (function() {
     easeInQuad: function (t, b, c, d) {
       return c*(t/=d)*t + b;
     },
-    slimAnalysis: function(data, slimFactor) {
-      return _.filter(data, function() { return Math.random() < 1/slimFactor; });
+    slimAnalysis: function(trackData, slimFactor) {
+      if (slimFactor !== 1) { // AKA none;
+        return _.map(trackData, function(track) {
+          return _.filter(track, function() { return Math.random() < 1/slimFactor; });
+        });
+      } else {
+        return trackData;
+      }
     },
-   revOpacity : function(color, opacity, colorScheme) {
+    revOpacity : function(color, opacity, colorScheme) {
       if (colorScheme === "dark") {
         return (color/255) * opacity;
       } else {
@@ -215,8 +221,6 @@ wallPie = (function() {
       // - scaling up font and whitespace size as it appears in the preview
       // This doesn't work as expected yet due to some stupidity, will fix
       scaleFactor       : 8,
-      // Reduces the amount of data with this factor
-      slimFactor        : 2,
       // Space in px between the edge of the canvas/paper & circle
       whitespace        : 40,
       // space in px on the inside
@@ -235,12 +239,10 @@ wallPie = (function() {
 
     var segmentBorders, segments, degreesPerSegment, whitespace, innerRadius, maxWidth, center, waveFormDiameter, textDistance, fontSizeTop, fontSizeBottom, scaledSize, textColor;
 
-    // TODO: slimming of the data should already have happened by now.
-
     // Calculate the number of segments per track, used to calculate when to draw track separators
-    segmentBorders    = _.map(analysis, function(a) {return a.length / options.slimFactor; });
+    segmentBorders    = _.map(analysis, function(a) {return a.length;});
     // Converts the segment data into one array of items, no longer distinguishing between tracks.
-    segments          = helpers.slimAnalysis(_.flatten(analysis, true), options.slimFactor);
+    segments          = _.flatten(analysis, true);
     degreesPerSegment = 360 / segments.length;
 
     // Calculating units for the visualisation
@@ -409,6 +411,7 @@ wallPie = (function() {
         fetchAnalysisForTracks(artist, tracks, function(data) {
           options.color = colors;
           data = helpers.flattenData(data);
+          data = helpers.slimAnalysis(data, options.slimFactor);
           drawFromAnalysis(data, artist, albumTitle, options);
         });
       });
@@ -421,6 +424,7 @@ wallPie = (function() {
       options.color = colors;
       $.get('/assets/test.json').success(function(data) {
         data = helpers.flattenData(data);
+        data = helpers.slimAnalysis(data, options.slimFactor);
         drawFromAnalysis(data, "Radiohead", "OK Computer", options);
       });
     });
