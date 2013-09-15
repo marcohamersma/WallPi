@@ -207,14 +207,15 @@ wallPie = (function() {
   /**
    * almost-not so bloated function which draws the actual thing.
    *
-   * @param  {Array} analysis  Echonest segment data for every track
-   *                           SHOULD: array with tracks.segments.frequencies (normalised 0-1)
+   * @param  {Array} analysis  frequency/pitch data for every track, per sample/segments.
+   *                           each value must be between 0-1;
+   *
    * @param  {String} artist   Artist name for drawing
    * @param  {String} title    Album title for drawing
    * @param  {Object} options  see readme, or the actual function, I dunno
    */
   drawFromAnalysis = function(analysis, artist, title, options) {
-    // TODO: Cancel if analysis.length === 0, obvously
+    if (analysis.length === 0) { trow('No data to analyse') }
     reportStatus("Starting to draw wih " + analysis.length + " track's analysis data");
     options = _.extend({
       // used to multiply/divide certain values:
