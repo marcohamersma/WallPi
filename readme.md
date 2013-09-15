@@ -41,7 +41,8 @@ fontSizeBottom        : 25,
 // draw track separators.
 trackSeparatorDegrees : 30,
 // The color you want to draw the wallPie in. You probably want to use `wallPi.extractCoverColor` for this.
-color                 : ''
+color                 : '',
+textColor             : '#464c3e'
 ```
 
 These options can be passed to `wallPie.fetchAlbum()` as seen in [index.html](https://github.com/marcohamersma/WallPi/blob/master/public/index.html).

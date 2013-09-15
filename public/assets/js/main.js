@@ -215,7 +215,7 @@ wallPie = (function() {
 
     // Not sure what do do with this.
     scaledSize        = [$canvas.width() / options.scaleFactor, $canvas.height() / options.scaleFactor];
-    textColor         = '#464c3e';
+    textColor         = this.options.textColor;
 
     // Start drawing
     context.save();
