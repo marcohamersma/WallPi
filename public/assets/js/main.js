@@ -72,7 +72,7 @@ wallPie = (function() {
    * @param  {Function} callback
    * @return {Array}             [red, green blue]
    */
-  processCoverArt = function(image_url, callback) {
+  processCoverArt = function(image_url, colorScheme, callback) {
     var el, findRightColor;
 
     /**
@@ -80,24 +80,21 @@ wallPie = (function() {
      * The score is a value between 0-1 (1 being max contrast), it is
      * calculated by taking each colour channel's difference with the
      * background  of each color with the background
-     * @param  {Array} colors      list of colours in [r,g,b] format
-     *                             for example one that comes from color-thief
-     * @param  {Number} threshhold A contrast threshold
-     * @return {Array}             Single color in [r,g,b] format
+     * @param  {Array}   colors     list of colours in [r,g,b] format
+     *                              for example one that comes from color-thief
+     * @param  {Number}  threshhold A contrast threshold
+     * @param  {Boolean} isDarkBg   Wether the canvas' background is dark
+     * @return {Array}              Single color in [r,g,b] format
      */
-    findRightColor = function(colors, threshhold) {
-      // TODO: background color, this should be dependent on
-      // options.colorScheme, but I need to do some scope shifting
-      // before that works as expected.
-      var bgModifier = 255*3,
-          darkbg     = options.colorScheme === "black";
+    findRightColor = function(colors, threshhold, isDarkBg) {
+      var bgModifier = 255*3;
 
       threshhold = threshhold || 0.2;
       return _.filter(colors, function(color) {
         var maxContrast = 255*3,
             score = (bgModifier - (color[0]+color[1]+color[2]))/(maxContrast);
 
-        if (darkbg) {
+        if (isDarkBg) {
           score = 0 - score;
         }
 
@@ -119,7 +116,11 @@ wallPie = (function() {
         height: el.height()
       });
 
-      callback(findRightColor(createPalette(el, 7)));
+      var colorPalette = createPalette(el, 7),
+          isDarkBg = colorScheme && colorScheme === "dark",
+          chosenColor = findRightColor(colorPalette, null, isDarkBg);
+
+      callback(chosenColor);
       el.remove();
     });
   };
@@ -407,7 +408,7 @@ wallPie = (function() {
         albumInfo.art = '/proxy?url=' + albumInfo.art;
       }
 
-      processCoverArt(albumInfo.art, function(colors) {
+      processCoverArt(albumInfo.art, options.colorScheme, function(colors) {
         fetchAnalysisForTracks(artist, tracks, function(data) {
           options.color = colors;
           data = helpers.flattenData(data);
@@ -420,7 +421,7 @@ wallPie = (function() {
 
   // Demo function for quickly rendering test data (offline)
   testData = function(options) {
-    processCoverArt("/assets/images/Ok computer.png", function(colors) {
+    processCoverArt("/assets/images/Ok computer.png", options.colorScheme, function(colors) {
       options.color = colors;
       $.get('/assets/test.json').success(function(data) {
         data = helpers.flattenData(data);
