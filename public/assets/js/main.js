@@ -20,7 +20,7 @@ API.prototype.fetch = function (endpoint, parameters, json_params) {
 
 /*global $, _ , createPalette*/
 wallPie = (function() {
-  var getTrackSummary, getAnalysisForSongSearch, easeInQuad, slimAnalysis, processCoverArt, drawFromAnalysis, fetchAnalysisForTracks, fetchAlbum, reportError, testData, echoNest, lastfm, fetchAlbumInfo, reportStatus, drawSegment, helpers, drawSegment,
+  var getAnalysisForSongSearch, extractColorFromCover, drawFromAnalysis, fetchAnalysisForTracks, fetchAlbum, reportError, testData, echoNest, lastfm, fetchAlbumInfo, reportStatus, helpers,
 
     canvas      = document.getElementById('canvas'),
     $canvas     = $(canvas),
@@ -72,7 +72,7 @@ wallPie = (function() {
    * @param  {Function} callback
    * @return {Array}             [red, green blue]
    */
-  processCoverArt = function(image_url, colorScheme, callback) {
+  extractCoverColor = function(image_url, colorScheme, callback) {
     var el, findRightColor;
 
     /**
@@ -408,7 +408,7 @@ wallPie = (function() {
         albumInfo.art = '/proxy?url=' + albumInfo.art;
       }
 
-      processCoverArt(albumInfo.art, options.colorScheme, function(colors) {
+      extractCoverColor(albumInfo.art, options.colorScheme, function(colors) {
         fetchAnalysisForTracks(artist, tracks, function(data) {
           options.color = colors;
           data = helpers.flattenData(data);
@@ -421,7 +421,7 @@ wallPie = (function() {
 
   // Demo function for quickly rendering test data (offline)
   testData = function(options) {
-    processCoverArt("/assets/images/Ok computer.png", options.colorScheme, function(colors) {
+    extractCoverColor("/assets/images/Ok computer.png", options.colorScheme, function(colors) {
       options.color = colors;
       $.get('/assets/test.json').success(function(data) {
         data = helpers.flattenData(data);
