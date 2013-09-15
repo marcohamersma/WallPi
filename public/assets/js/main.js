@@ -21,10 +21,7 @@ API.prototype.fetch = function (endpoint, parameters, json_params) {
 };
 
 wallPie = (function() {
-  var helpers, extractCoverColor, drawDataPoint, drawSegment, decorateCanvas, draw,
-      canvas      = document.getElementById('canvas'),
-      $canvas     = $(canvas),
-      context     = canvas.getContext('2d');
+  var helpers, extractCoverColor, drawDataPoint, drawSegment, decorateCanvas, draw;
 
   helpers = {
     reportError: function(message, data) {
@@ -114,7 +111,7 @@ wallPie = (function() {
 
     el = $('<img>').attr({
       src       : image_url
-    });
+    }).addClass('coverart');
 
     el.appendTo('body');
     el.load(function() {
@@ -181,8 +178,8 @@ wallPie = (function() {
    */
   draw = function(analysis, artist, title, options) {
     if (analysis.length === 0) { trow('No data to analyse'); }
-
     helpers.reportStatus("Starting to draw wih " + analysis.length + " track's analysis data");
+
     options = _.extend({
       color                 : null,
       font                  : 'Helvetica Neue',
@@ -196,26 +193,37 @@ wallPie = (function() {
       whitespace            : 40
     }, options);
 
-    var segmentCount, degreesPerSegment, whitespace, innerRadius, maxWidth, center, waveFormDiameter, textDistance, fontSizeTop, fontSizeBottom, scaledSize, textColor;
+    var canvasWidth       = 3508,
+        canvasHeight      = 4961,
 
-    // Calculate the number of segments per track, used to calculate when to draw track separators
-    segmentCount      = helpers.segmentCount(analysis);
-    degreesPerSegment = (360 - options.trackSeparatorDegrees) / segmentCount;
+        // Calculate the number of segments per track, used to calculate when to draw track separators
+        segmentCount      = helpers.segmentCount(analysis),
+        degreesPerSegment = (360 - options.trackSeparatorDegrees) / segmentCount,
 
-    // Calculating units for the visualisation
-    whitespace        = options.scaleFactor * options.whitespace;
-    innerRadius       = options.scaleFactor * (options.innerDiameter / 2);
-    fontSizeTop       = options.scaleFactor * (options.fontSizeTop);
-    fontSizeBottom    = options.scaleFactor * (options.fontSizeBottom);
+        // Calculating units for the visualisation
+        whitespace        = options.scaleFactor * options.whitespace,
+        innerRadius       = options.scaleFactor * (options.innerDiameter / 2),
+        fontSizeTop       = options.scaleFactor * (options.fontSizeTop),
+        fontSizeBottom    = options.scaleFactor * (options.fontSizeBottom),
 
-    maxWidth          = $canvas.width() < $canvas.height() ? $canvas.width() : $canvas.height();
-    center            = [$canvas.width()/2, $canvas.height()/2];
-    waveFormDiameter  = (maxWidth/2) - innerRadius - whitespace;
-    textDistance      = (options.textDistance * options.scaleFactor) + innerRadius + waveFormDiameter;
+        maxWidth          = canvasWidth < canvasHeight ? canvasWidth : canvasHeight,
+        center            = [canvasWidth/2, canvasHeight/2],
+        waveFormDiameter  = (maxWidth/2) - innerRadius - whitespace,
+        textDistance      = (options.textDistance * options.scaleFactor) + innerRadius + waveFormDiameter,
 
-    // Not sure what do do with this.
-    scaledSize        = [$canvas.width() / options.scaleFactor, $canvas.height() / options.scaleFactor];
-    textColor         = this.options.textColor;
+        // Not sure what do do with this.
+        scaledSize        = [canvasWidth / options.scaleFactor, canvasHeight / options.scaleFactor],
+        textColor         = options.textColor,
+
+        canvas            = document.createElement('canvas'),
+        $canvas           = $(canvas),
+        context;
+
+    // Preparing canvas
+    canvas.width  = canvasWidth;
+    canvas.height = canvasHeight;
+    context       = canvas.getContext('2d');
+    document.body.appendChild(canvas);
 
     // Start drawing
     context.save();
