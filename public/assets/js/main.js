@@ -179,14 +179,14 @@ wallPie = (function() {
 
   drawSegment = function(context, segmentRange, color, colorScheme, innerRadius, waveFormDiameter, scaleFactor) {
     var y = innerRadius || 0,
-        frequencyPoint = segmentRange.reverse(),
-        pixelsPerNote = waveFormDiameter/(segmentRange.length - 1),
+        frequencyPoints = segmentRange.reverse(),
+        pixelsPerNote   = waveFormDiameter/(segmentRange.length - 1),
         i;
 
     // Draw every datapoint to the canvas, with the following color. Then move up to draw the next one
-    for (i = 0; i < frequencyPoint.length; i++) {
+    for (i = 0; i < frequencyPoints.length; i++) {
       context.moveTo(0, y);
-      drawDataPoint(context, frequencyPoint[i], color, colorScheme, 0, y, scaleFactor, pixelsPerNote);
+      drawDataPoint(context, frequencyPoints[i], color, colorScheme, 0, y, scaleFactor, pixelsPerNote);
       y = (i * pixelsPerNote) + innerRadius;
     }
   };
