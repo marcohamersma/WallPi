@@ -1,6 +1,9 @@
 # Wallπ
 ![](https://dl.dropbox.com/u/4905073/Wall%CF%80/examples.png)
 
+## V2 notes:
+-  No longer using colorscheme
+
 ## About the Hack
 Wallπ uses frequency analysis to draw a visual, circular representation of an album. The amount of activity within a frequency is reflected in the density of the color. The colour used to draw the circle is extracted from the cover art. The output file (at the moment) is 3508x4961px, high enough for print.
 
@@ -28,8 +31,6 @@ slimFactor        : 1,
 whitespace        : 30,
 // space in px on the inside, makes for interesting effects
 innerDiameter     : 0,
-// Wether we should use a "light" or "dark" background.
-colorScheme        : 'light',
 // Distance of the text from the circle
 textDistance       : 30,
 // Speaks for itself, I'm using Neutra locally.

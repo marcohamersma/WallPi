@@ -72,7 +72,7 @@ wallPie = (function() {
    * @param  {Function} callback
    * @return {Array}             [red, green blue]
    */
-  extractCoverColor = function(image_url, colorScheme, callback) {
+  var extractCoverColor = function(image_url, callback) {
     var el, findRightColor;
 
     /**
@@ -83,20 +83,15 @@ wallPie = (function() {
      * @param  {Array}   colors     list of colours in [r,g,b] format
      *                              for example one that comes from color-thief
      * @param  {Number}  threshhold A contrast threshold
-     * @param  {Boolean} isDarkBg   Wether the canvas' background is dark
      * @return {Array}              Single color in [r,g,b] format
      */
-    findRightColor = function(colors, threshhold, isDarkBg) {
+    findRightColor = function(colors, threshhold) {
       var bgModifier = 255*3;
 
       threshhold = threshhold || 0.2;
       return _.filter(colors, function(color) {
         var maxContrast = 255*3,
             score = (bgModifier - (color[0]+color[1]+color[2]))/(maxContrast);
-
-        if (isDarkBg) {
-          score = 0 - score;
-        }
 
         if (score > threshhold) {
           return color;
@@ -117,8 +112,7 @@ wallPie = (function() {
       });
 
       var colorPalette = createPalette(el, 7),
-          isDarkBg = colorScheme && colorScheme === "dark",
-          chosenColor = findRightColor(colorPalette, null, isDarkBg);
+          chosenColor = findRightColor(colorPalette);
 
       callback(chosenColor);
       el.remove();
@@ -141,12 +135,10 @@ wallPie = (function() {
         return trackData;
       }
     },
-    revOpacity : function(color, opacity, colorScheme) {
-      if (colorScheme === "dark") {
-        return (color/255) * opacity;
-      } else {
-        return (((255 - color) * (1-opacity)) + color)/255;
-      }
+    // We need to simulate opacity on the colors, since especially in the center,
+    // we're drawing over previous data a lot, it'd get super dense unless we faked it.
+    revOpacity : function(color, opacity) {
+      return (((255 - color) * (1-opacity)) + color)/255;
     },
     /**
      * Takes segment data from the Echonest and transforms it into an array
@@ -163,30 +155,28 @@ wallPie = (function() {
     }
   };
 
-  // TODO: sort arguments to make more sense
-  var drawDataPoint = function(context, value, color, colorScheme, x, y, scaleFactor, height) {
+  var drawDataPoint = function(context, value, color, y, width, height) {
     context.setFillColor(
-      // TODO: Do I really still need this? can't I use normal opacity?
-      helpers.revOpacity(color[0], value, colorScheme),
-      helpers.revOpacity(color[1], value, colorScheme),
-      helpers.revOpacity(color[2], value, colorScheme),
+      helpers.revOpacity(color[0], value),
+      helpers.revOpacity(color[1], value),
+      helpers.revOpacity(color[2], value),
       1
     );
 
-    // TODO: Please, not scalefactor in here :(
-    context.fillRect(x, y, scaleFactor/2, height);
+    context.fillRect(0, y, width, height);
   };
 
-  drawSegment = function(context, segmentRange, color, colorScheme, innerRadius, waveFormDiameter, scaleFactor) {
+  drawSegment = function(context, segmentRange, color, innerRadius, waveFormDiameter, scaleFactor) {
     var y = innerRadius || 0,
         frequencyPoints = segmentRange.reverse(),
         pixelsPerNote   = waveFormDiameter/(segmentRange.length - 1),
+        segmentWidth    = scaleFactor / 2,
         i;
 
     // Draw every datapoint to the canvas, with the following color. Then move up to draw the next one
     for (i = 0; i < frequencyPoints.length; i++) {
       context.moveTo(0, y);
-      drawDataPoint(context, frequencyPoints[i], color, colorScheme, 0, y, scaleFactor, pixelsPerNote);
+      drawDataPoint(context, frequencyPoints[i], color, y, segmentWidth, pixelsPerNote);
       y = (i * pixelsPerNote) + innerRadius;
     }
   };
@@ -215,24 +205,14 @@ wallPie = (function() {
    * @param  {Object} options  see readme, or the actual function, I dunno
    */
   drawFromAnalysis = function(analysis, artist, title, options) {
-    if (analysis.length === 0) { trow('No data to analyse') }
+    if (analysis.length === 0) { trow('No data to analyse'); }
     reportStatus("Starting to draw wih " + analysis.length + " track's analysis data");
     options = _.extend({
-      // used to multiply/divide certain values:
-      // - scaling the canvas down after rendering (for preview purposes)
-      // - scaling up font and whitespace size as it appears in the preview
-      // This doesn't work as expected yet due to some stupidity, will fix
       scaleFactor       : 8,
-      // Space in px between the edge of the canvas/paper & circle
       whitespace        : 40,
-      // space in px on the inside
       innerDiameter     : 0,
       color             : null,
-      // Wether we should use a "light" or "dark" background.
-      colorScheme        : 'light',
-      // Distance of the text from the circle
       textDistance       : 35,
-      // Speaks for itself, I'm using Neutra locally.
       font               : 'Helvetica Neue',
       fontSizeTop        : 50,
       fontSizeBottom     : 25,
@@ -260,12 +240,7 @@ wallPie = (function() {
 
     // Not sure what do do with this.
     scaledSize        = [$canvas.width() / options.scaleFactor, $canvas.height() / options.scaleFactor];
-    textColor         = options.colorScheme === "dark" ? '#ffffff' : '#464c3e';
-
-    if (options.colorScheme === "dark") {
-      context.setFillColor('#000000');
-      context.fillRect(0,0, $canvas.width(), $canvas.height());
-    }
+    textColor         = '#464c3e';
 
     // Start drawing
     context.save();
@@ -274,7 +249,7 @@ wallPie = (function() {
     // context.scale(1/options.scaleFactor, 1/options.scaleFactor);
 
     _.each(segments, function(segmentRange) {
-      drawSegment(context, segmentRange, options.color, options.colorScheme, innerRadius, waveFormDiameter, options.scaleFactor);
+      drawSegment(context, segmentRange, options.color, innerRadius, waveFormDiameter, options.scaleFactor);
 
       context.rotate(helpers.toRadian(degreesPerSegment));
       // Ideally I'd draw separators here
@@ -283,7 +258,7 @@ wallPie = (function() {
     // Draw Borders
     // TODO: Can I instead of rotating a full 360, maybe only rotate 350, and use the rest for separators?
     _.each(segmentBorders, function(border) {
-      var borderColor = options.colorScheme === "dark" ? '#000000' : $canvas.css('background-color');
+      var borderColor = $canvas.css('background-color');
       context.rotate(helpers.toRadian(border * degreesPerSegment));
 
       context.setFillColor(borderColor);
@@ -409,7 +384,7 @@ wallPie = (function() {
         albumInfo.art = '/proxy?url=' + albumInfo.art;
       }
 
-      extractCoverColor(albumInfo.art, options.colorScheme, function(colors) {
+      extractCoverColor(albumInfo.art, function(colors) {
         fetchAnalysisForTracks(artist, tracks, function(data) {
           options.color = colors;
           data = helpers.flattenData(data);
@@ -422,7 +397,7 @@ wallPie = (function() {
 
   // Demo function for quickly rendering test data (offline)
   testData = function(options) {
-    extractCoverColor("/assets/images/Ok computer.png", options.colorScheme, function(colors) {
+    extractCoverColor("/assets/images/Ok computer.png", function(colors) {
       options.color = colors;
       $.get('/assets/test.json').success(function(data) {
         data = helpers.flattenData(data);
