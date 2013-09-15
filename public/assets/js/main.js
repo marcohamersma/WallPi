@@ -152,6 +152,13 @@ wallPie = (function() {
       return _.map(trackData, function(echoNestTrackData) {
         return _.pluck(echoNestTrackData, 'pitches');
       });
+    },
+    segmentCount: function (trackData) {
+      var count = 0;
+      _.each(trackData, function(t) {
+        count += t.length;
+      });
+      return count;
     }
   };
 
@@ -166,7 +173,7 @@ wallPie = (function() {
     context.fillRect(0, y, width, height);
   };
 
-  drawSegment = function(context, segmentRange, color, innerRadius, waveFormDiameter, scaleFactor) {
+  var drawSegment = function(context, segmentRange, color, innerRadius, waveFormDiameter, scaleFactor) {
     var y = innerRadius || 0,
         frequencyPoints = segmentRange.reverse(),
         pixelsPerNote   = waveFormDiameter/(segmentRange.length - 1),
@@ -219,13 +226,13 @@ wallPie = (function() {
       trackSeparatorSize : 1
     }, options);
 
-    var segmentBorders, segments, degreesPerSegment, whitespace, innerRadius, maxWidth, center, waveFormDiameter, textDistance, fontSizeTop, fontSizeBottom, scaledSize, textColor;
+    var segmentCount, degreesPerSegment, whitespace, innerRadius, maxWidth, center, waveFormDiameter, textDistance, fontSizeTop, fontSizeBottom, scaledSize, textColor, separatorDegrees;
 
     // Calculate the number of segments per track, used to calculate when to draw track separators
-    segmentBorders    = _.map(analysis, function(a) {return a.length;});
-    // Converts the segment data into one array of items, no longer distinguishing between tracks.
-    segments          = _.flatten(analysis, true);
-    degreesPerSegment = 360 / segments.length;
+    segmentCount      = helpers.segmentCount(analysis);
+    // amount of degrees used for separators
+    separatorDegrees  = 30;
+    degreesPerSegment = (360 - separatorDegrees) / segmentCount;
 
     // Calculating units for the visualisation
     whitespace        = options.scaleFactor * options.whitespace;
@@ -248,22 +255,15 @@ wallPie = (function() {
     context.rotate(helpers.toRadian(180));
     // context.scale(1/options.scaleFactor, 1/options.scaleFactor);
 
-    _.each(segments, function(segmentRange) {
-      drawSegment(context, segmentRange, options.color, innerRadius, waveFormDiameter, options.scaleFactor);
+    _.each(analysis, function(trackData) {
+      _.each(trackData, function(segmentRange) {
+        drawSegment(context, segmentRange, options.color, innerRadius, waveFormDiameter, options.scaleFactor);
 
-      context.rotate(helpers.toRadian(degreesPerSegment));
-      // Ideally I'd draw separators here
-    });
+        context.rotate(helpers.toRadian(degreesPerSegment));
+      });
 
-    // Draw Borders
-    // TODO: Can I instead of rotating a full 360, maybe only rotate 350, and use the rest for separators?
-    _.each(segmentBorders, function(border) {
-      var borderColor = $canvas.css('background-color');
-      context.rotate(helpers.toRadian(border * degreesPerSegment));
-
-      context.setFillColor(borderColor);
-      context.moveTo(0, 0);
-      context.fillRect(0, innerRadius - 1, options.trackSeparatorSize * options.scaleFactor, waveFormDiameter+1 );
+      // Rotate the canvas a bit to separate different tracks
+      context.rotate(helpers.toRadian(separatorDegrees / analysis.length));
     });
 
     context.restore();
