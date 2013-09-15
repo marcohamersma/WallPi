@@ -140,6 +140,19 @@ wallPie = (function() {
       } else {
         return (((255 - color) * (1-opacity)) + color)/255;
       }
+    },
+    /**
+     * Takes segment data from the Echonest and transforms it into an array
+     * with just the segments per track. Leaving out any other metadata
+     * that the Echonest might add in the meantime.
+     *
+     * @param  {Object} data output of fetchAnalysis
+     * @return {Object}      data used for drawing (for drawFromAnalysis)
+     */
+    flattenData: function(trackData) {
+      return _.map(trackData, function(echoNestTrackData) {
+        return _.pluck(echoNestTrackData, 'pitches');
+      });
     }
   };
 
@@ -159,9 +172,8 @@ wallPie = (function() {
 
   drawSegment = function(context, segmentRange, color, colorScheme, innerRadius, waveFormDiameter, scaleFactor) {
     var y = innerRadius || 0,
-        // TODO: At this point I shouldn't have to filter data
-        frequencyPoint = segmentRange.pitches.reverse(),
-        pixelsPerNote = waveFormDiameter/(segmentRange.pitches.length - 1),
+        frequencyPoint = segmentRange.reverse(),
+        pixelsPerNote = waveFormDiameter/(segmentRange.length - 1),
         i;
 
     // Draw every datapoint to the canvas, with the following color. Then move up to draw the next one
@@ -228,7 +240,7 @@ wallPie = (function() {
     // Calculate the number of segments per track, used to calculate when to draw track separators
     segmentBorders    = _.map(analysis, function(a) {return a.length / options.slimFactor; });
     // Converts the segment data into one array of items, no longer distinguishing between tracks.
-    segments          = helpers.slimAnalysis(_.flatten(analysis), options.slimFactor);
+    segments          = helpers.slimAnalysis(_.flatten(analysis, true), options.slimFactor);
     degreesPerSegment = 360 / segments.length;
 
     // Calculating units for the visualisation
@@ -396,6 +408,7 @@ wallPie = (function() {
       processCoverArt(albumInfo.art, function(colors) {
         fetchAnalysisForTracks(artist, tracks, function(data) {
           options.color = colors;
+          data = helpers.flattenData(data);
           drawFromAnalysis(data, artist, albumTitle, options);
         });
       });
@@ -407,6 +420,7 @@ wallPie = (function() {
     processCoverArt("/assets/images/Ok computer.png", function(colors) {
       options.color = colors;
       $.get('/assets/test.json').success(function(data) {
+        data = helpers.flattenData(data);
         drawFromAnalysis(data, "Radiohead", "OK Computer", options);
       });
     });
