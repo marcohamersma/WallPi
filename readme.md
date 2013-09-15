@@ -19,28 +19,29 @@ There are a number of configuration options you might want to set to experiment 
 
 ```javascript
 // API keys for the two services that we're using for getting our data
-echonest_key      : '',
-lastfm_key        : '',
+echonest_key          : '',
+lastfm_key            : '',
 // used to multiply/divide certain values:
 // - scaling the canvas down after rendering (for preview purposes)
 // - scaling up font and whitespace size as it appears in the preview
-scaleFactor       : 8,
+scaleFactor           : 8,
 // Reduces the amount of data with this factor
-slimFactor        : 1,
+slimFactor            : 1,
 // Space in px between the edge of the canvas/paper & circle
-whitespace        : 30,
+whitespace            : 30,
 // space in px on the inside, makes for interesting effects
-innerDiameter     : 0,
+innerDiameter         : 0,
 // Distance of the text from the circle
-textDistance       : 30,
+textDistance          : 30,
 // Speaks for itself, I'm using Neutra locally.
-font               : 'Helvetica Neue',
-fontSizeTop        : 50,
-fontSizeBottom     : 25,
-// How big the gap between tracks needs to be
-trackSeparatorSize : 1,
-// an (optional) array of track titles for when using the Last.FM API returns bad results
-trackTitles        : false
+font                  : 'Helvetica Neue',
+fontSizeTop           : 50,
+fontSizeBottom        : 25,
+// Amount of degrees (within 360) that will be used to
+// draw track separators.
+trackSeparatorDegrees : 30,
+// The color you want to draw the wallPie in. You probably want to use `wallPi.extractCoverColor` for this.
+color                 : ''
 ```
 
 These options can be passed to `wallPie.fetchAlbum()` as seen in [index.html](https://github.com/marcohamersma/WallPi/blob/master/public/index.html).

@@ -26,22 +26,49 @@
   <body>
     <canvas id="canvas" width="3508" height="4961"></canvas>
     <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/lib/pitchdata.js"></script>
     <script type="text/javascript">
+      var artist     = "Radiohead",
+          albumName  = "OK Computer",
+          options;
+
       // Options! see the readme for a list
       var options = {
         slimFactor : 1,
         font: 'Neutra Text',
         trackSeparatorSize: 2,
-        echonest_key: '',
-        lastfm_key: ''
+        innerDiameter: 175
       }
 
-      // 1. Artist
-      // 2. Album Title
-      // 3. Tracks on the album,
-      // 4. Album art
-      // 5. Options
-      wallPie.fetchAlbum("My Bloody Valentine", "Loveless", options);
+      pitchData.initialize({
+        echonest_key: '',
+        lastfm_key: ''
+      });
+
+      // Start by fetching the album data
+      pitchData.fetchAlbumInfo(artist, albumName, function(albumInfo) {
+        var coverUrl = albumInfo.art;
+        // Change the URL of the cover art to go through the proxy in the wallPie server
+        if (coverUrl.indexOf('/') !== 0) {
+          coverUrl = '/proxy?url=' + coverUrl;
+        }
+
+        pitchData.fetchAnalysisForTracks(artist, albumInfo.tracks, function(analysisData) {
+          // Post-process the data.
+          analysisData = wallPie.helpers.flattenData(analysisData);
+          analysisData = wallPie.helpers.slimAnalysis(analysisData, options.slimFactor);
+
+          // Extract a color from the cover artwork
+          wallPie.extractCoverColor(coverUrl, function(color) {
+            options.color = color;
+
+            // Draw the wallPie with the data that we've retrieved
+            wallPie.draw(analysisData, artist, albumName, options);
+          });
+        });
+      });
+
+      // TODO: rename wallPie to wallPi
 
       // // For offline testing ...
       // wallPie.test({
