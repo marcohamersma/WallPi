@@ -40,8 +40,8 @@ fontSizeBottom        : 25,
 // Amount of degrees (within 360) that will be used to
 // draw track separators.
 trackSeparatorDegrees : 30,
-// The color you want to draw the wallPie in. You probably want to use `wallPi.extractCoverColor` for this.
-color                 : '',
+// The color you want to draw the wallPie in. You probably want to use `wallPi.extractCoverColor` for this. format is [r,b,g]
+color                 : [],
 textColor             : '#464c3e'
 ```
 
