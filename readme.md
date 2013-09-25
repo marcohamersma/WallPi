@@ -34,8 +34,7 @@ textDistance          : 30,
 font                  : 'Helvetica Neue',
 fontSizeTop           : 50,
 fontSizeBottom        : 25,
-// Amount of degrees (within 360) that will be used to
-// draw track separators.
+// Amount of degrees (within 360) that we will rotate between tracks
 trackSeparatorDegrees : 30,
 // The color you want to draw the wallPie in. You probably want to use `wallPi.extractCoverColor` for this.
 color                 : '',

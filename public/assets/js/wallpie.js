@@ -141,7 +141,7 @@ wallPie = (function() {
   drawSegment = function(context, segmentRange, color, innerRadius, waveFormDiameter, scaleFactor) {
     var y = innerRadius || 0,
         frequencyPoints = segmentRange.reverse(),
-        pixelsPerNote   = waveFormDiameter/(segmentRange.length - 1),
+        pixelsPerNote   = Math.round(waveFormDiameter/(segmentRange.length - 1)),
         segmentWidth    = scaleFactor / 2,
         i;
 
@@ -189,16 +189,21 @@ wallPie = (function() {
       scaleFactor           : 8,
       textColor             : '#464c3e',
       textDistance          : 35,
-      trackSeparatorDegrees : 30,
+      trackSeparatorDegrees : 5,
       whitespace            : 40
     }, options);
+
+    if (analysis.length < 2) {
+      options.trackSeparatorDegrees = 0;
+    }
 
     var canvasWidth       = 3508,
         canvasHeight      = 4961,
 
         // Calculate the number of segments per track, used to calculate when to draw track separators
         segmentCount      = helpers.segmentCount(analysis),
-        degreesPerSegment = (360 - options.trackSeparatorDegrees) / segmentCount,
+        totalSeparatorDeg = options.trackSeparatorDegrees * analysis.length - 1,
+        degreesPerSegment = (360 - totalSeparatorDeg) / segmentCount,
 
         // Calculating units for the visualisation
         whitespace        = options.scaleFactor * options.whitespace,
@@ -239,7 +244,7 @@ wallPie = (function() {
       });
 
       // Rotate the canvas a bit to separate different tracks
-      context.rotate(helpers.toRadian(options.trackSeparatorDegrees / analysis.length));
+      context.rotate(helpers.toRadian(options.trackSeparatorDegrees));
     });
 
     context.restore();
