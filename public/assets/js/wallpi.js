@@ -1,6 +1,6 @@
 /*global $, _ , createPalette*/
 /*jshint browser:true */
-var API, wallPie;
+var API, wallPi;
 
 API = function(base_url, key) {
   this.key      = key;
@@ -20,7 +20,7 @@ API.prototype.fetch = function (endpoint, parameters, json_params) {
   return $.ajax(json_params);
 };
 
-wallPie = (function() {
+wallPi = (function() {
   var helpers, extractCoverColor, drawDataPoint, drawSegment, decorateCanvas, draw;
 
   helpers = {

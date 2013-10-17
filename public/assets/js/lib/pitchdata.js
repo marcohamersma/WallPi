@@ -1,6 +1,6 @@
-/*global API, wallPie, _ */
+/*global API, wallPi, _ */
 window.pitchData = (function(){
-  var helpers = wallPie.helpers,
+  var helpers = wallPi.helpers,
       getAnalysisForSongSearch,
       fetchAnalysisForTracks,
       fetchAlbumInfo,

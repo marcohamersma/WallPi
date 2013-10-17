@@ -37,12 +37,15 @@ fontSizeTop           : 50,
 fontSizeBottom        : 25,
 // Amount of degrees (within 360) that we will rotate between tracks
 trackSeparatorDegrees : 30,
-// The color you want to draw the wallPie in. You probably want to use `wallPi.extractCoverColor` for this. format is [r,b,g]
+// The color you want to draw the wallπ in. You probably want to use `wallPi.extractCoverColor` for this. format is [r,b,g]
 color                 : [],
 textColor             : '#464c3e'
 ```
 
-These options can be passed to `wallPie.fetchAlbum()` as seen in [index.html](https://github.com/marcohamersma/WallPi/blob/master/public/index.html).
+These options can be passed to `wallPi.fetchAlbum()` as seen in [index.html](https://github.com/marcohamersma/WallPi/blob/master/public/index.html).
+
+## Naming convention
+It's Wallπ when possible, wallPi otherwise.
 
 ## Todos
 -  Overlay the cover art in a fancy way?
