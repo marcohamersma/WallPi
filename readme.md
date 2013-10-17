@@ -42,7 +42,7 @@ color                 : [],
 textColor             : '#464c3e'
 ```
 
-These options can be passed to `wallPi.fetchAlbum()` as seen in [index.html](https://github.com/marcohamersma/WallPi/blob/master/public/index.html).
+These options can be passed to `pitchData.fetchAlbumInfo()` as seen in [index.html](https://github.com/marcohamersma/WallPi/blob/master/public/index.html).
 
 ## Naming convention
 It's Wallπ when possible, wallPi otherwise.
