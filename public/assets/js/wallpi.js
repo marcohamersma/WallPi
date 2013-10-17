@@ -199,6 +199,9 @@ wallPie = (function() {
 
     var canvasWidth       = 3508,
         canvasHeight      = 4961,
+    // HUGE
+    // var canvasWidth       = 7087,
+    //     canvasHeight      = 10630,
 
         // Calculate the number of segments per track, used to calculate when to draw track separators
         segmentCount      = helpers.segmentCount(analysis),
