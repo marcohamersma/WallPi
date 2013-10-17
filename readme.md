@@ -1,10 +1,13 @@
 # Wallπ
-![](https://dl.dropbox.com/u/4905073/Wall%CF%80/examples.png)
+![](https://dl.dropboxusercontent.com/u/4905073/Wall%CF%80/examples.png)
 
 ## About the Hack
 WallPπ is an application that transforms the music from your favourite albums into something you can put on your wall. The amount of activity within a frequency is reflected in the density of the color. The colour used to draw the circle is extracted from the cover art.
 
-The current version does _not_ use actual frequency data, but it uses pitch data by segment, supplied by [The Echonest API](http://developer.echonest.com/docs/v4/track.html). I'm working on a new version of Wallπ at the moment that uses actual frequenct data, but I don't have an ETA for that yet.
+The current version does _not_ use actual frequency data, but it uses pitch data by segment, supplied by [The Echonest API](http://developer.echonest.com/docs/v4/track.html), and track data supplied by [Last.fm](http://www.last.fm/api/show/album.getInfo). The data supplied by both could be incomplete or inaccurate, unfortunately.
+
+### Version two
+I'm working on a new version of Wallπ at the moment that uses actual frequency data from local files, but I don't have an ETA for that yet.
 
 ## How to run
 There is a server component which is used to proxy remote assets (to prevent cross-domain issues) and serve the html and assets. This component is written in Node. You can use `npm install` to install the neccesary dependencies. After all the dependencies are installed, type `bin/server` to run. It's then available at `localhost:9100`. Open index.html in your favourite text editor for instructions on how to load an album.
