@@ -1,8 +1,8 @@
 {
   "author": "Marco Hamersma",
-  "name": "wallpie",
-  "version": "0.0.5",
-  "homepage": "http://soundcloud.com/jobs",
+  "name": "WallPi",
+  "version": "0.1.0",
+  "homepage": "https://github.com/marcohamersma/wallPi",
   "engines": {
     "node": "v0.8.9"
   },
